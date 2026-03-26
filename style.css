@@ -685,6 +685,10 @@ footer {
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
   .nav-links {
     position: fixed;
     top: 0;
@@ -709,6 +713,16 @@ footer {
   }
   
   .hero h1 { font-size: 2.5rem; }
-  .contact-form { grid-template-columns: 1fr; }
+  
+  .contact-container {
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+  
+  .contact-form {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
   .footer-grid { grid-template-columns: 1fr; }
 }
