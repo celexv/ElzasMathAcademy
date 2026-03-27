@@ -68,5 +68,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Let the contact form submit natively to trigger FormSubmit's mandatory email activation step.
+  // Form Submission via AJAX to show popup
+  const contactForm = document.getElementById('contactForm');
+  const successModal = document.getElementById('successModal');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  
+  if (contactForm && successModal && closeModalBtn) {
+    contactForm.addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default redirection
+      
+      const submitBtn = contactForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = 'Submitting... <i class="fas fa-spinner fa-spin"></i>';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(contactForm);
+
+      fetch(contactForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          successModal.classList.add('active');
+          contactForm.reset();
+        } else {
+          alert("Oops! There was a problem submitting your form");
+        }
+      })
+      .catch(error => {
+        alert("Oops! There was a problem submitting your form");
+        console.error(error);
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      });
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      successModal.classList.remove('active');
+      window.location.reload(); // Reload the page
+    });
+    
+    // Also close on click outside the modal content
+    window.addEventListener('click', (e) => {
+      if (e.target === successModal) {
+        successModal.classList.remove('active');
+        window.location.reload();
+      }
+    });
+  }
 });
