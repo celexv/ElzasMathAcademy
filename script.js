@@ -85,7 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData(contactForm);
 
       // 1. URL for FormSubmit Email (use /ajax/ endpoint to fix Vercel CORS)
-      const formSubmitUrl = contactForm.action.replace('https://formsubmit.co/', 'https://formsubmit.co/ajax/');
+      let formSubmitUrl = contactForm.action;
+      if (!formSubmitUrl.includes('/ajax/')) {
+        formSubmitUrl = formSubmitUrl.replace('https://formsubmit.co/', 'https://formsubmit.co/ajax/');
+      }
 
       // Send to FormSubmit
       const emailPromise = fetch(formSubmitUrl, {
