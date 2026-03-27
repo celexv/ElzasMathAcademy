@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mobile Menu Toggle
   const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
   const navLinks = document.querySelector('.nav-links');
-  
+
   if (mobileMenuBtn && navLinks) {
     mobileMenuBtn.addEventListener('click', () => {
       navLinks.classList.toggle('active');
@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Scroll Reveal Animations
   const reveals = document.querySelectorAll('.reveal');
-  
+
   const revealOnScroll = () => {
     const windowHeight = window.innerHeight;
     const elementVisible = 150;
-    
+
     reveals.forEach(reveal => {
       const elementTop = reveal.getBoundingClientRect().top;
       if (elementTop < windowHeight - elementVisible) {
@@ -72,11 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const contactForm = document.getElementById('contactForm');
   const successModal = document.getElementById('successModal');
   const closeModalBtn = document.getElementById('closeModalBtn');
-  
+
   if (contactForm && successModal && closeModalBtn) {
-    contactForm.addEventListener('submit', function(e) {
+    contactForm.addEventListener('submit', function (e) {
       e.preventDefault(); // Prevent default redirection
-      
+
       const submitBtn = contactForm.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerHTML;
       submitBtn.innerHTML = 'Submitting... <i class="fas fa-spinner fa-spin"></i>';
@@ -84,36 +84,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const formData = new FormData(contactForm);
 
-      fetch(contactForm.action, {
+      // 1. URL for FormSubmit Email (use /ajax/ endpoint to fix Vercel CORS)
+      const formSubmitUrl = contactForm.action.replace('https://formsubmit.co/', 'https://formsubmit.co/ajax/');
+
+      // Send to FormSubmit
+      const emailPromise = fetch(formSubmitUrl, {
         method: 'POST',
         body: formData,
         headers: {
-            'Accept': 'application/json'
+          'Accept': 'application/json'
         }
-      })
-      .then(response => {
-        if (response.ok) {
-          successModal.classList.add('active');
-          contactForm.reset();
-        } else {
-          alert("Oops! There was a problem submitting your form");
-        }
-      })
-      .catch(error => {
-        alert("Oops! There was a problem submitting your form");
-        console.error(error);
-      })
-      .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      });
+      }).catch(err => console.error("FormSubmit Error:", err));
+
+      // 2. URL for Google Sheets Apps Script
+      const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbw2FK3HRUZC9BnytvoPGTYuqMlZ3R5vpUt6ANgZ1iu0iEsHm6FcPLwf-5ZuH1uuXA/exec';
+
+      // Send to Google Sheets
+      const sheetPromise = fetch(googleScriptUrl, {
+        method: 'POST',
+        body: formData
+      }).catch(err => console.error("Google Sheets Error:", err));
+
+      // Wait for both submissions
+      Promise.all([emailPromise, sheetPromise])
+        .then(responses => {
+          const emailResponse = responses[0];
+          // As long as the primary email succeeds, we indicate success
+          if (emailResponse && emailResponse.ok) {
+            successModal.classList.add('active');
+            contactForm.reset();
+          } else {
+            alert("Oops! There was a problem submitting your form.");
+          }
+        })
+        .catch(error => {
+          alert("Oops! There was a problem submitting your form.");
+          console.error(error);
+        })
+        .finally(() => {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        });
     });
 
     closeModalBtn.addEventListener('click', () => {
       successModal.classList.remove('active');
       window.location.reload(); // Reload the page
     });
-    
+
     // Also close on click outside the modal content
     window.addEventListener('click', (e) => {
       if (e.target === successModal) {
