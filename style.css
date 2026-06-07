@@ -789,3 +789,100 @@ footer {
   
   .footer-grid { grid-template-columns: 1fr; }
 }
+
+/* ==========================================
+   View Transition API Animations
+   ========================================== */
+
+header {
+  view-transition-name: main-header;
+}
+
+/* Blend mode override to avoid text blurring/color-shift during transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1.0);
+}
+
+/* Disable smooth scrolling during transitions to make snaps instant */
+html.transition-down,
+html.transition-up {
+  scroll-behavior: auto !important;
+}
+
+/* Keyframes: Downward Navigation */
+@keyframes slide-out-to-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-80px);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(80px);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Keyframes: Upward Navigation */
+@keyframes slide-out-to-bottom {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(80px);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    transform: translateY(-80px);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Applying Keyframes based on navigation direction class on HTML root */
+.transition-down::view-transition-old(root) {
+  animation-name: slide-out-to-top;
+}
+.transition-down::view-transition-new(root) {
+  animation-name: slide-in-from-bottom;
+}
+
+.transition-up::view-transition-old(root) {
+  animation-name: slide-out-to-bottom;
+}
+.transition-up::view-transition-new(root) {
+  animation-name: slide-in-from-top;
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  html.transition-down,
+  html.transition-up {
+    scroll-behavior: auto !important;
+  }
+}
+

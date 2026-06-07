@@ -68,6 +68,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // View Transition Navigation for internal links
+  const internalLinks = document.querySelectorAll('a[href^="#"]');
+
+  internalLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      
+      // If href is just "#", target is the top of the page, otherwise find the element
+      const targetElement = href === '#' ? document.documentElement : document.querySelector(href);
+      
+      if (targetElement) {
+        e.preventDefault();
+
+        // Check if View Transition API is supported
+        if (document.startViewTransition) {
+          const currentScroll = window.scrollY;
+          const targetScroll = href === '#' ? 0 : targetElement.offsetTop;
+          
+          // Determine scroll direction to apply appropriate animation
+          const direction = targetScroll < currentScroll ? 'up' : 'down';
+          
+          document.documentElement.classList.add(`transition-${direction}`);
+          
+          const transition = document.startViewTransition(() => {
+            // Scroll instantly during the transition snapshot
+            if (href === '#') {
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            } else {
+              targetElement.scrollIntoView({ behavior: 'instant' });
+            }
+            
+            // Instantly update active navigation state
+            const targetId = href === '#' ? '#home' : href;
+            navItems.forEach(item => {
+              item.classList.remove('active');
+              if (item.getAttribute('href') === targetId) {
+                item.classList.add('active');
+              }
+            });
+          });
+
+          // Clean up the animation classes when the transition finishes
+          transition.finished.finally(() => {
+            document.documentElement.classList.remove('transition-up', 'transition-down');
+          });
+        } else {
+          // Fallback to native smooth scroll for unsupported browsers
+          if (href === '#') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+
+        // Close mobile navigation menu if it is currently open
+        if (navLinks && navLinks.classList.contains('active')) {
+          navLinks.classList.remove('active');
+          const icon = mobileMenuBtn ? mobileMenuBtn.querySelector('i') : null;
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        }
+      }
+    });
+  });
+
   // Form Submission via AJAX to show popup
   const contactForm = document.getElementById('contactForm');
   const successModal = document.getElementById('successModal');
